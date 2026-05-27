@@ -1,3 +1,5 @@
+.claude/
+
 # Dependencias
 node_modules/
 npm-debug.log*
