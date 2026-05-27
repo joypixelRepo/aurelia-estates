@@ -6,9 +6,11 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-// Registrar ScrollTrigger de GSAP
-if (typeof window !== 'undefined') {
+// Registrar ScrollTrigger SOLO en cliente
+let ScrollTriggerRegistered = false;
+if (typeof window !== 'undefined' && !ScrollTriggerRegistered) {
   gsap.registerPlugin(ScrollTrigger);
+  ScrollTriggerRegistered = true;
 }
 
 // Import dinámico del componente 3D
@@ -64,7 +66,8 @@ export default function Process() {
   const progressRef = useRef<number>(0);
   const [activeStep, setActiveStep] = useState(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const [isMounted, setIsMounted] = useState(false); // ← Cambiado de isClient a isMounted
+  const [isMounted, setIsMounted] = useState(false);
+  const [scrollTriggerReady, setScrollTriggerReady] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -75,14 +78,32 @@ export default function Process() {
   const foldScale = useTransform(scrollYProgress, [0.88, 1], [1, 0.78]);
   const foldOpacity = useTransform(scrollYProgress, [0.88, 1], [1, 0.08]);
 
-  // ✅ Marcar que el componente está montado en el cliente
+  // Marcar que estamos en cliente
   useEffect(() => {
     setIsMounted(true);
+    
+    // Forzar que ScrollTrigger se refresh después de que la página cargue completamente
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined' && ScrollTrigger) {
+        ScrollTrigger.refresh();
+        setScrollTriggerReady(true);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, []);
 
-  // Configurar ScrollTrigger
+  // Configurar ScrollTrigger - solo cuando está ready
   useEffect(() => {
+    if (!scrollTriggerReady) return;
     if (!sectionRef.current || !pinRef.current) return;
+    
+    // Matar cualquier ScrollTrigger existente en esta sección
+    ScrollTrigger.getAll().forEach(trigger => {
+      if (trigger.vars.trigger === sectionRef.current) {
+        trigger.kill();
+      }
+    });
     
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
@@ -93,6 +114,9 @@ export default function Process() {
         pin: pinRef.current,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        // Forzar que el pinning funcione correctamente
+        pinSpacing: true,
+        refreshPriority: 1,
         onUpdate: (self) => {
           const wheelProgress = Math.min(1, self.progress / WHEEL_COMPLETE_AT);
           progressRef.current = wheelProgress;
@@ -110,19 +134,28 @@ export default function Process() {
       });
     }, sectionRef);
 
-    // Forzar refresh después de que todo esté listo
-    const timeoutId = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 200);
+    // Forzar refresh después de crear el trigger
+    ScrollTrigger.refresh();
 
     return () => {
-      clearTimeout(timeoutId);
       ctx.revert();
     };
-  }, []);
+  }, [scrollTriggerReady]);
+
+  // Refresh en resize
+  useEffect(() => {
+    if (!scrollTriggerReady) return;
+    
+    const handleResize = () => {
+      setTimeout(() => ScrollTrigger.refresh(), 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [scrollTriggerReady]);
 
   return (
-    <section id="process" ref={sectionRef} className="relative bg-black">
+    <section id="process" ref={sectionRef} className="relative bg-black" style={{ minHeight: '100vh' }}>
       <div
         ref={pinRef}
         className="h-[100svh] w-full relative overflow-hidden"
@@ -208,7 +241,7 @@ export default function Process() {
               </div>
             </div>
 
-            {/* ✅ 3D wheel panel - SOLO se renderiza en el cliente después del montaje */}
+            {/* 3D wheel panel */}
             <div className="lg:col-span-7 relative order-1 lg:order-2 h-[55svh] lg:h-full bg-black rounded-2xl overflow-hidden">
               <div className="absolute inset-0">
                 {isMounted && <ProcessScene3D progressRef={progressRef} />}
