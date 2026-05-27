@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
-import { MutableRefObject, ReactNode, Suspense, useRef } from 'react';
+import { MutableRefObject, ReactNode, Suspense, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 
 interface ProcessScene3DProps {
@@ -27,7 +27,6 @@ function Compass() {
   });
   return (
     <group rotation={[-0.4, 0, 0]}>
-      {/* Outer brass case */}
       <mesh>
         <cylinderGeometry args={[0.55, 0.55, 0.13, 64]} />
         <meshPhysicalMaterial
@@ -38,12 +37,10 @@ function Compass() {
           clearcoatRoughness={0.2}
         />
       </mesh>
-      {/* Outer engraved ring */}
       <mesh position={[0, 0.064, 0]}>
         <torusGeometry args={[0.55, 0.018, 12, 64]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.35} />
       </mesh>
-      {/* Glass dome */}
       <mesh position={[0, 0.07, 0]}>
         <sphereGeometry args={[0.5, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2.6]} />
         <meshPhysicalMaterial
@@ -57,22 +54,18 @@ function Compass() {
           opacity={0.35}
         />
       </mesh>
-      {/* Bezel ring */}
       <mesh position={[0, 0.07, 0]}>
         <torusGeometry args={[0.5, 0.04, 16, 64]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
       </mesh>
-      {/* Dial face */}
       <mesh position={[0, 0.066, 0]}>
         <cylinderGeometry args={[0.46, 0.46, 0.005, 48]} />
         <meshStandardMaterial color="#0e0d10" roughness={0.55} />
       </mesh>
-      {/* Inner ring */}
       <mesh position={[0, 0.068, 0]}>
         <torusGeometry args={[0.38, 0.005, 8, 48]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.25} />
       </mesh>
-      {/* Hour ticks */}
       {Array.from({ length: 12 }).map((_, i) => {
         const a = (i / 12) * Math.PI * 2;
         const major = i % 3 === 0;
@@ -87,7 +80,6 @@ function Compass() {
           </mesh>
         );
       })}
-      {/* Needle */}
       <group ref={needle} position={[0, 0.08, 0]}>
         <mesh>
           <boxGeometry args={[0.035, 0.008, 0.62]} />
@@ -114,12 +106,10 @@ function Compass() {
           <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
         </mesh>
       </group>
-      {/* Pivot */}
       <mesh position={[0, 0.085, 0]}>
         <cylinderGeometry args={[0.028, 0.032, 0.03, 16]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.1} />
       </mesh>
-      {/* Side hinge */}
       <mesh position={[0, 0.02, 0.55]}>
         <boxGeometry args={[0.16, 0.08, 0.06]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
@@ -131,7 +121,6 @@ function Compass() {
 function Folio() {
   return (
     <group rotation={[-0.35, 0.5, 0]}>
-      {/* Leather body */}
       <mesh position={[0, -0.04, 0]}>
         <boxGeometry args={[1.05, 0.16, 0.78]} />
         <meshPhysicalMaterial
@@ -141,12 +130,10 @@ function Folio() {
           clearcoatRoughness={0.6}
         />
       </mesh>
-      {/* Gold edge — top page slab */}
       <mesh position={[0, 0.045, 0]}>
         <boxGeometry args={[1.02, 0.005, 0.755]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.2} />
       </mesh>
-      {/* Paper edges (side gilding) */}
       <mesh position={[0, -0.04, 0.395]}>
         <boxGeometry args={[1.0, 0.14, 0.012]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.25} />
@@ -155,22 +142,18 @@ function Folio() {
         <boxGeometry args={[0.012, 0.14, 0.78]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.25} />
       </mesh>
-      {/* Embossed monogram plate */}
       <mesh position={[0, 0.052, 0]}>
         <boxGeometry args={[0.28, 0.008, 0.18]} />
         <meshStandardMaterial color={GOLD} metalness={1} roughness={0.18} />
       </mesh>
-      {/* Plate inner inset */}
       <mesh position={[0, 0.058, 0]}>
         <boxGeometry args={[0.22, 0.004, 0.12]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
       </mesh>
-      {/* Spine band (back) */}
       <mesh position={[-0.53, -0.04, 0]}>
         <boxGeometry args={[0.014, 0.18, 0.78]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.32} />
       </mesh>
-      {/* Closure cord */}
       <mesh position={[0.53, 0.05, 0]}>
         <cylinderGeometry args={[0.018, 0.018, 0.18, 12]} />
         <meshStandardMaterial color={GOLD} metalness={1} roughness={0.25} />
@@ -182,7 +165,6 @@ function Folio() {
 function Pin() {
   return (
     <group>
-      {/* Pin teardrop top */}
       <mesh position={[0, 0.15, 0]}>
         <sphereGeometry args={[0.4, 48, 32, 0, Math.PI * 2, 0, Math.PI / 1.5]} />
         <meshPhysicalMaterial
@@ -193,7 +175,6 @@ function Pin() {
           clearcoatRoughness={0.2}
         />
       </mesh>
-      {/* Tip cone */}
       <mesh position={[0, -0.34, 0]}>
         <coneGeometry args={[0.32, 0.6, 48]} />
         <meshPhysicalMaterial
@@ -204,22 +185,18 @@ function Pin() {
           clearcoatRoughness={0.2}
         />
       </mesh>
-      {/* Tip cap */}
       <mesh position={[0, -0.62, 0]}>
         <sphereGeometry args={[0.022, 16, 16]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
       </mesh>
-      {/* Center hole */}
       <mesh position={[0, 0.2, 0.36]}>
         <circleGeometry args={[0.13, 32]} />
         <meshStandardMaterial color="#0c0b0e" roughness={0.4} />
       </mesh>
-      {/* Inner gold ring */}
       <mesh position={[0, 0.2, 0.361]}>
         <ringGeometry args={[0.13, 0.155, 32]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.15} side={THREE.DoubleSide} />
       </mesh>
-      {/* Highlight band */}
       <mesh position={[0, 0.36, 0]}>
         <torusGeometry args={[0.34, 0.008, 8, 32]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
@@ -231,7 +208,6 @@ function Pin() {
 function Pen() {
   return (
     <group rotation={[0.2, 0, -Math.PI / 3.6]}>
-      {/* Body — slight taper */}
       <mesh>
         <cylinderGeometry args={[0.08, 0.09, 1.2, 48]} />
         <meshPhysicalMaterial
@@ -242,17 +218,14 @@ function Pen() {
           clearcoatRoughness={0.1}
         />
       </mesh>
-      {/* Cap */}
       <mesh position={[0, 0.72, 0]}>
         <cylinderGeometry args={[0.092, 0.092, 0.32, 48]} />
         <meshStandardMaterial color={GOLD} metalness={0.98} roughness={0.17} />
       </mesh>
-      {/* Cap top dome */}
       <mesh position={[0, 0.88, 0]}>
         <sphereGeometry args={[0.092, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
         <meshStandardMaterial color={GOLD} metalness={0.98} roughness={0.17} />
       </mesh>
-      {/* Engraved cap rings */}
       <mesh position={[0, 0.6, 0]}>
         <torusGeometry args={[0.092, 0.008, 12, 48]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.35} />
@@ -261,7 +234,6 @@ function Pen() {
         <torusGeometry args={[0.092, 0.005, 12, 48]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.35} />
       </mesh>
-      {/* Clip */}
       <mesh position={[0.1, 0.6, 0]} rotation={[0, 0, 0]}>
         <boxGeometry args={[0.025, 0.5, 0.06]} />
         <meshStandardMaterial color={GOLD} metalness={1} roughness={0.18} />
@@ -270,27 +242,22 @@ function Pen() {
         <sphereGeometry args={[0.022, 16, 16]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.15} />
       </mesh>
-      {/* Mid-body decorative ring */}
       <mesh position={[0, -0.1, 0]}>
         <torusGeometry args={[0.087, 0.006, 12, 48]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
       </mesh>
-      {/* Section (gold sleeve before nib) */}
       <mesh position={[0, -0.62, 0]}>
         <cylinderGeometry args={[0.085, 0.07, 0.15, 32]} />
         <meshStandardMaterial color={GOLD} metalness={0.98} roughness={0.2} />
       </mesh>
-      {/* Nib */}
       <mesh position={[0, -0.78, 0]}>
         <coneGeometry args={[0.07, 0.22, 32]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.18} />
       </mesh>
-      {/* Nib slit (thin dark strip) */}
       <mesh position={[0, -0.78, 0.001]} rotation={[0, 0, 0]}>
         <boxGeometry args={[0.004, 0.18, 0.001]} />
         <meshStandardMaterial color="#0a0a0c" />
       </mesh>
-      {/* Tip dot */}
       <mesh position={[0, -0.9, 0]}>
         <sphereGeometry args={[0.012, 16, 16]} />
         <meshStandardMaterial color="#1a1a1a" metalness={0.6} roughness={0.4} />
@@ -302,12 +269,10 @@ function Pen() {
 function Deed() {
   return (
     <group rotation={[0.3, 0.35, -0.1]}>
-      {/* Paper roll */}
       <mesh rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.34, 0.34, 1.3, 64]} />
         <meshStandardMaterial color={PAPER} roughness={0.88} />
       </mesh>
-      {/* Inner layer (visible at ends) */}
       <mesh rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.28, 0.28, 1.32, 48]} />
         <meshStandardMaterial color={PAPER_DARK} roughness={0.85} />
@@ -316,7 +281,6 @@ function Deed() {
         <cylinderGeometry args={[0.22, 0.22, 1.34, 48]} />
         <meshStandardMaterial color={PAPER} roughness={0.85} />
       </mesh>
-      {/* Edge caps */}
       <mesh rotation={[0, 0, Math.PI / 2]} position={[0.66, 0, 0]}>
         <cylinderGeometry args={[0.355, 0.355, 0.04, 48]} />
         <meshStandardMaterial color={PAPER_DARK} roughness={0.7} />
@@ -325,7 +289,6 @@ function Deed() {
         <cylinderGeometry args={[0.355, 0.355, 0.04, 48]} />
         <meshStandardMaterial color={PAPER_DARK} roughness={0.7} />
       </mesh>
-      {/* Gold ribbon */}
       <mesh>
         <torusGeometry args={[0.36, 0.04, 16, 48]} />
         <meshPhysicalMaterial
@@ -335,22 +298,18 @@ function Deed() {
           clearcoat={0.8}
         />
       </mesh>
-      {/* Ribbon highlight */}
       <mesh>
         <torusGeometry args={[0.36, 0.008, 8, 48]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.15} />
       </mesh>
-      {/* Wax seal */}
       <mesh position={[0, 0.36, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.14, 0.14, 0.05, 32]} />
         <meshPhysicalMaterial color="#7d1818" roughness={0.55} clearcoat={0.5} />
       </mesh>
-      {/* Wax drip */}
       <mesh position={[0.12, 0.32, 0]}>
         <sphereGeometry args={[0.04, 16, 16]} />
         <meshPhysicalMaterial color="#7d1818" roughness={0.6} />
       </mesh>
-      {/* Seal engraving (gold A) */}
       <mesh position={[0, 0.4, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.08, 0.08, 0.005, 24]} />
         <meshStandardMaterial color={GOLD_LIGHT} metalness={1} roughness={0.2} />
@@ -362,7 +321,6 @@ function Deed() {
 function Key() {
   return (
     <group rotation={[0, 0, -Math.PI / 7]}>
-      {/* Bow (outer) */}
       <mesh position={[0, 0.55, 0]}>
         <torusGeometry args={[0.34, 0.07, 24, 64]} />
         <meshPhysicalMaterial
@@ -373,12 +331,10 @@ function Key() {
           clearcoatRoughness={0.15}
         />
       </mesh>
-      {/* Bow inner ring */}
       <mesh position={[0, 0.55, 0]}>
         <torusGeometry args={[0.21, 0.022, 16, 48]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
       </mesh>
-      {/* Trefoil ornaments on bow */}
       {[0, 1, 2, 3].map((i) => {
         const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
         return (
@@ -392,17 +348,14 @@ function Key() {
           </mesh>
         );
       })}
-      {/* Collar */}
       <mesh position={[0, 0.22, 0]}>
         <cylinderGeometry args={[0.105, 0.08, 0.12, 32]} />
         <meshStandardMaterial color={GOLD} metalness={0.98} roughness={0.2} />
       </mesh>
-      {/* Collar rings */}
       <mesh position={[0, 0.16, 0]}>
         <torusGeometry args={[0.083, 0.008, 12, 32]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
       </mesh>
-      {/* Shaft */}
       <mesh position={[0, -0.28, 0]}>
         <cylinderGeometry args={[0.055, 0.055, 0.85, 24]} />
         <meshPhysicalMaterial
@@ -412,22 +365,18 @@ function Key() {
           clearcoat={1}
         />
       </mesh>
-      {/* Shaft groove */}
       <mesh position={[0, -0.28, 0.055]}>
         <boxGeometry args={[0.012, 0.7, 0.005]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.4} />
       </mesh>
-      {/* Tooth 1 */}
       <mesh position={[0.13, -0.55, 0]}>
         <boxGeometry args={[0.16, 0.11, 0.05]} />
         <meshStandardMaterial color={GOLD} metalness={0.98} roughness={0.2} />
       </mesh>
-      {/* Tooth 2 */}
       <mesh position={[0.16, -0.7, 0]}>
         <boxGeometry args={[0.22, 0.1, 0.05]} />
         <meshStandardMaterial color={GOLD} metalness={0.98} roughness={0.2} />
       </mesh>
-      {/* Tip notch */}
       <mesh position={[0.05, -0.73, 0]}>
         <boxGeometry args={[0.04, 0.06, 0.05]} />
         <meshStandardMaterial color={GOLD_DARK} metalness={1} roughness={0.3} />
@@ -467,13 +416,11 @@ function WheelItem({
     ref.current.position.y =
       Math.sin(state.clock.elapsedTime * 0.8 + index) * 0.06 - 0.05;
 
-    // Scale up the item closest to the camera (front)
-    const front = Math.max(0, Math.cos(a)); // 1 when at front, 0 on the sides
-    const target = 0.42 + front * 0.45; // smaller overall
+    const front = Math.max(0, Math.cos(a));
+    const target = 0.42 + front * 0.45;
     tmpScale.current = THREE.MathUtils.lerp(tmpScale.current, target, 0.1);
     ref.current.scale.setScalar(tmpScale.current);
 
-    // Subtle continuous self-rotation
     innerRef.current.rotation.y = state.clock.elapsedTime * 0.25 + index * 0.7;
   });
 
@@ -488,11 +435,19 @@ function WheelItem({
 
 function Wheel({ progressRef }: { progressRef: MutableRefObject<number> }) {
   const rotationRef = useRef(0);
-  const radius = 2.7;
+  const [isReady, setIsReady] = useState(false);
+
+  // Pequeño retraso para asegurar que todo esté montado
+  useEffect(() => {
+    const timer = setTimeout(() => setIsReady(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useFrame(() => {
+    if (!isReady) return;
+    // Animación más suave con easing
     const target = -progressRef.current * Math.PI * 2 * ((ITEMS.length - 1) / ITEMS.length);
-    rotationRef.current += (target - rotationRef.current) * 0.08;
+    rotationRef.current += (target - rotationRef.current) * 0.12;
   });
 
   return (
@@ -502,7 +457,7 @@ function Wheel({ progressRef }: { progressRef: MutableRefObject<number> }) {
           key={i}
           index={i}
           total={ITEMS.length}
-          radius={radius}
+          radius={2.7}
           rotationRef={rotationRef}
           Item={Item}
         />
@@ -517,7 +472,6 @@ function Lights() {
       <ambientLight intensity={0.4} />
       <directionalLight position={[4, 6, 5]} intensity={1.1} color="#f3ede2" />
       <directionalLight position={[-5, 3, -2]} intensity={0.35} color={GOLD} />
-      {/* Key light from camera direction */}
       <pointLight position={[0, 1.0, 5]} intensity={3.2} color={GOLD_LIGHT} distance={10} />
       <spotLight
         position={[0, 5, 3]}
@@ -531,6 +485,16 @@ function Lights() {
 }
 
 export default function ProcessScene3D({ progressRef }: ProcessScene3DProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="w-full h-full bg-black" />;
+  }
+
   return (
     <Canvas
       dpr={[1, 1.8]}
