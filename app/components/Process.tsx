@@ -64,7 +64,7 @@ export default function Process() {
   const progressRef = useRef<number>(0);
   const [activeStep, setActiveStep] = useState(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const [isClient, setIsClient] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // ← Cambiado de isClient a isMounted
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -75,9 +75,9 @@ export default function Process() {
   const foldScale = useTransform(scrollYProgress, [0.88, 1], [1, 0.78]);
   const foldOpacity = useTransform(scrollYProgress, [0.88, 1], [1, 0.08]);
 
-  // Marcar que estamos en cliente
+  // ✅ Marcar que el componente está montado en el cliente
   useEffect(() => {
-    setIsClient(true);
+    setIsMounted(true);
   }, []);
 
   // Configurar ScrollTrigger
@@ -208,10 +208,10 @@ export default function Process() {
               </div>
             </div>
 
-            {/* 3D wheel panel */}
+            {/* ✅ 3D wheel panel - SOLO se renderiza en el cliente después del montaje */}
             <div className="lg:col-span-7 relative order-1 lg:order-2 h-[55svh] lg:h-full bg-black rounded-2xl overflow-hidden">
               <div className="absolute inset-0">
-                {isClient && <ProcessScene3D progressRef={progressRef} />}
+                {isMounted && <ProcessScene3D progressRef={progressRef} />}
               </div>
               {/* Soft glow under wheel */}
               <div className="absolute inset-x-12 bottom-12 h-32 bg-[radial-gradient(ellipse_at_center,rgba(201,163,104,0.18),transparent_70%)] pointer-events-none" />
