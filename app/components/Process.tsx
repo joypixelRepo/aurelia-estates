@@ -73,46 +73,57 @@ export default function Process() {
   useEffect(() => {
     if (!sectionRef.current || !pinRef.current) return;
 
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: PIN_END,
-        scrub: 0.5,
-        pin: pinRef.current,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          const wheelProgress = Math.min(1, self.progress / WHEEL_COMPLETE_AT);
-          progressRef.current = wheelProgress;
+    let ctx: gsap.Context;
 
-          if (progressBarRef.current) {
-            progressBarRef.current.style.transform = `scaleX(${wheelProgress})`;
-          }
+    // Función contenedora de la lógica de inicialización de GSAP
+    const initScrollTrigger = () => {
+      ctx = gsap.context(() => {
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: PIN_END,
+          scrub: 0.5,
+          pin: pinRef.current,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            const wheelProgress = Math.min(1, self.progress / WHEEL_COMPLETE_AT);
+            progressRef.current = wheelProgress;
 
-          const idx = Math.max(
-            0,
-            Math.min(STEPS.length - 1, Math.round(wheelProgress * (STEPS.length - 1)))
-          );
-          setActiveStep((prev) => (prev === idx ? prev : idx));
-        },
-      });
-    }, sectionRef);
+            if (progressBarRef.current) {
+              progressBarRef.current.style.transform = `scaleX(${wheelProgress})`;
+            }
 
-    // Forzar el refresco de los cálculos una vez que el DOM y el Smooth Scroll están listos
-    const handleRefresh = () => {
-      ScrollTrigger.refresh();
+            const idx = Math.max(
+              0,
+              Math.min(STEPS.length - 1, Math.round(wheelProgress * (STEPS.length - 1)))
+            );
+            setActiveStep((prev) => (prev === idx ? prev : idx));
+          },
+        });
+      }, sectionRef);
     };
 
-    if (document.readyState === 'complete') {
-      requestAnimationFrame(handleRefresh);
+    // SOLUCIÓN AL MODO INCÓGNITO: Esperar a que las fuentes alteren el DOM antes de medir
+    if ('fonts' in document) {
+      document.fonts.ready.then(() => {
+        requestAnimationFrame(() => {
+          initScrollTrigger();
+          ScrollTrigger.refresh();
+        });
+      });
     } else {
-      window.addEventListener('load', handleRefresh);
+      // Fallback para entornos donde document.fonts no esté disponible
+      const handleLoad = () => {
+        initScrollTrigger();
+        ScrollTrigger.refresh();
+      };
+      window.addEventListener('load', handleLoad);
+      return () => window.removeEventListener('load', handleLoad);
     }
 
     return () => {
-      window.removeEventListener('load', handleRefresh);
-      ctx.revert();
+      if (ctx) ctx.revert();
     };
   }, []);
 
@@ -204,10 +215,9 @@ export default function Process() {
               </div>
             </div>
 
-            <div className="lg:col-span-7 relative order-1 lg:order-2 h-[55svh] lg:h-full bg-black">
-              <div className="absolute inset-0">
-                <ProcessScene3D progressRef={progressRef} />
-              </div>
+            {/* Optimización de desbordamiento en el contenedor 3D */}
+            <div className="lg:col-span-7 relative order-1 lg:order-2 h-[55svh] lg:h-full bg-black overflow-hidden">
+              <ProcessScene3D progressRef={progressRef} />
               <div className="absolute inset-x-12 bottom-12 h-32 bg-[radial-gradient(ellipse_at_center,rgba(201,163,104,0.18),transparent_70%)] pointer-events-none" />
             </div>
           </div>
