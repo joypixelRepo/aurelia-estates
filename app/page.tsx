@@ -1,6 +1,6 @@
 import Header from './components/Header';
 import Hero from './components/Hero';
-// import Properties from './components/Properties';
+import Properties from './components/Properties';
 import Process from './components/Process';
 import About from './components/About';
 import Services from './components/Services';
@@ -12,7 +12,7 @@ export default function HomePage() {
     <main className="relative">
       <Header />
       <Hero />
-      {/* <Properties /> */}
+      <Properties />
       <Process />
       <About />
       <Services />
