@@ -13,7 +13,7 @@ export default function HomePage() {
       <Header />
       <Hero />
       <Properties />
-
+      <Process />
       <About />
       <Services />
       <Contact />
