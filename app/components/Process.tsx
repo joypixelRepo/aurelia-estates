@@ -102,10 +102,15 @@ export default function Process() {
   }, []);
 
   return (
-    <section id="process" ref={sectionRef} className="relative bg-black">
+    <section 
+      id="process" 
+      ref={sectionRef} 
+      className="relative bg-black"
+      style={{ minHeight: '600vh' }}
+    >
       <div
         ref={pinRef}
-        className="h-[100svh] w-full relative overflow-hidden"
+        className="h-screen w-full relative overflow-hidden"
         style={{ perspective: 1800 }}
       >
         <motion.div
