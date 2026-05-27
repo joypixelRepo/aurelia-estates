@@ -6,6 +6,11 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+// Registrar el plugin de GSAP de forma segura en el cliente
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 const ProcessScene3D = dynamic(() => import('./ProcessScene3D'), { ssr: false });
 
 const STEPS = [
@@ -67,6 +72,7 @@ export default function Process() {
 
   useEffect(() => {
     if (!sectionRef.current || !pinRef.current) return;
+
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: sectionRef.current,
@@ -93,10 +99,19 @@ export default function Process() {
       });
     }, sectionRef);
 
-    const id = window.setTimeout(() => ScrollTrigger.refresh(), 120);
+    // Forzar el refresco de los cálculos una vez que el DOM y el Smooth Scroll están listos
+    const handleRefresh = () => {
+      ScrollTrigger.refresh();
+    };
+
+    if (document.readyState === 'complete') {
+      requestAnimationFrame(handleRefresh);
+    } else {
+      window.addEventListener('load', handleRefresh);
+    }
 
     return () => {
-      window.clearTimeout(id);
+      window.removeEventListener('load', handleRefresh);
       ctx.revert();
     };
   }, []);
