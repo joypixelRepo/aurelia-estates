@@ -75,7 +75,7 @@ export default function Process() {
 
     let ctx: gsap.Context;
 
-    // Función contenedora de la lógica de inicialización de GSAP
+    // Inicialización principal de GSAP ScrollTrigger
     const initScrollTrigger = () => {
       ctx = gsap.context(() => {
         ScrollTrigger.create({
@@ -104,19 +104,44 @@ export default function Process() {
       }, sectionRef);
     };
 
-    // SOLUCIÓN AL MODO INCÓGNITO: Esperar a que las fuentes alteren el DOM antes de medir
+    // Función para gestionar la carga de imágenes previas (Crucial para Desktop)
+    const waitForImagesAndRefresh = () => {
+      const images = document.querySelectorAll('img');
+      if (images.length === 0) {
+        ScrollTrigger.refresh();
+        return;
+      }
+
+      let loadedCount = 0;
+      const onImageLoad = () => {
+        loadedCount++;
+        if (loadedCount === images.length) {
+          ScrollTrigger.refresh();
+        }
+      };
+
+      images.forEach((img) => {
+        if (img.complete) {
+          onImageLoad();
+        } else {
+          img.addEventListener('load', onImageLoad);
+          img.addEventListener('error', onImageLoad);
+        }
+      });
+    };
+
+    // Orquestación de carga: Fuentes -> Inicializar -> Verificar Imágenes
     if ('fonts' in document) {
       document.fonts.ready.then(() => {
         requestAnimationFrame(() => {
           initScrollTrigger();
-          ScrollTrigger.refresh();
+          waitForImagesAndRefresh();
         });
       });
     } else {
-      // Fallback para entornos donde document.fonts no esté disponible
       const handleLoad = () => {
         initScrollTrigger();
-        ScrollTrigger.refresh();
+        waitForImagesAndRefresh();
       };
       window.addEventListener('load', handleLoad);
       return () => window.removeEventListener('load', handleLoad);
@@ -215,7 +240,7 @@ export default function Process() {
               </div>
             </div>
 
-            {/* Optimización de desbordamiento en el contenedor 3D */}
+            {/* Contenedor optimizado contra desbordamientos en grid de desktop */}
             <div className="lg:col-span-7 relative order-1 lg:order-2 h-[55svh] lg:h-full bg-black overflow-hidden">
               <ProcessScene3D progressRef={progressRef} />
               <div className="absolute inset-x-12 bottom-12 h-32 bg-[radial-gradient(ellipse_at_center,rgba(201,163,104,0.18),transparent_70%)] pointer-events-none" />
