@@ -111,7 +111,7 @@ export default function Hero() {
           {/* Scroll-scrubbed background video */}
           <video
             ref={videoRef}
-            src="/video-inmobiliarias.mp4"
+            src="/Drone_shot_villa_Mediterranean_Sea_202605282020.mp4"
             muted
             playsInline
             preload="auto"
