@@ -1702,6 +1702,10 @@ video {
   padding-left: clamp(24px, 7vw, 140px);
   padding-right: clamp(24px, 7vw, 140px);
 }
+.px-\[clamp\(16px\2c 3vw\2c 56px\)\] {
+  padding-left: clamp(16px, 3vw, 56px);
+  padding-right: clamp(16px, 3vw, 56px);
+}
 .pb-12 {
   padding-bottom: 3rem;
 }

@@ -170,7 +170,7 @@ export default function ProcessGallery({ slides, progressRef }: ProcessGalleryPr
       {/* Layer 2 — the filmstrip */}
       <div
         ref={trackRef}
-        className="absolute inset-y-0 left-0 z-10 flex w-max items-center gap-[clamp(20px,4vw,72px)] px-[clamp(24px,7vw,140px)] will-change-transform"
+        className="absolute inset-y-0 left-0 z-10 flex w-max items-center gap-[clamp(20px,4vw,72px)] px-[clamp(16px,3vw,56px)] will-change-transform"
       >
         {slides.map((slide, i) => {
           const layout = LAYOUT[i % LAYOUT.length];
