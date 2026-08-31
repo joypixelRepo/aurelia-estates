@@ -167,25 +167,25 @@ export default function Process() {
           {/* Ambient gradient backdrop */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(201,163,104,0.08),transparent_60%)] pointer-events-none" />
 
-          <div className="relative h-full max-w-[1600px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pt-28 pb-12 lg:py-0">
+          <div className="relative h-full max-w-[1600px] mx-auto px-6 md:px-12 flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-12 pt-20 pb-16 md:pt-28 lg:py-0">
             {/* Text panel */}
-            <div className="lg:col-span-5 lg:col-start-1 flex flex-col justify-center order-2 lg:order-1">
-              <div className="flex items-center gap-4 mb-6">
+            <div className="lg:col-span-5 lg:col-start-1 shrink-0 flex flex-col justify-center order-2 lg:order-1">
+              <div className="flex items-center gap-4 mb-4 lg:mb-6">
                 <span className="block h-px w-12 bg-gold-500" />
                 <span className="eyebrow">The Aurelia Process</span>
               </div>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-[5rem] leading-[1.02] text-sand-50 mb-4">
+              <h2 className="font-display text-3xl md:text-5xl lg:text-[5rem] leading-[1.02] text-sand-50 mb-3 lg:mb-4">
                 Six measured steps
                 <br />
                 <span className="text-gold-400 italic font-light">to a residence that lasts.</span>
               </h2>
-              <p className="text-sand-200/70 text-sm md:text-base font-light leading-relaxed mb-10 max-w-md">
+              <p className="hidden lg:block text-sand-200/70 text-sm md:text-base font-light leading-relaxed mb-10 max-w-md">
                 From the first private call to the moment the keys turn — every stage is choreographed,
                 documented and quietly attended to by the house.
               </p>
 
               {/* Step content (crossfade) */}
-              <div className="relative min-h-[200px] md:min-h-[220px]">
+              <div className="relative min-h-[168px] md:min-h-[220px]">
                 {STEPS.map((s, i) => (
                   <div
                     key={s.title}
@@ -197,13 +197,13 @@ export default function Process() {
                         : 'opacity-0 translate-y-6 pointer-events-none'
                     }`}
                   >
-                    <div className="flex items-baseline gap-4 mb-3">
-                      <span className="font-display text-5xl md:text-6xl text-gold-400 leading-none">
+                    <div className="flex items-baseline gap-4 mb-2 lg:mb-3">
+                      <span className="font-display text-4xl md:text-6xl text-gold-400 leading-none">
                         {String(i + 1).padStart(2, '0')}
                       </span>
                       <span className="eyebrow">Step / 06</span>
                     </div>
-                    <h3 className="font-display text-3xl md:text-4xl text-sand-50 mb-3">
+                    <h3 className="font-display text-2xl md:text-4xl text-sand-50 mb-2 lg:mb-3">
                       {s.title}
                     </h3>
                     <p className="text-sand-200/80 text-sm md:text-base font-light leading-relaxed max-w-md">
@@ -214,7 +214,7 @@ export default function Process() {
               </div>
 
               {/* Step indicators */}
-              <div className="flex items-center gap-2 mt-10">
+              <div className="flex items-center gap-2 mt-6 lg:mt-10">
                 {STEPS.map((_, i) => (
                   <span
                     key={i}
@@ -234,7 +234,7 @@ export default function Process() {
             </div>
 
             {/* Horizontal parallax gallery panel */}
-            <div className="lg:col-span-7 relative order-1 lg:order-2 h-[55svh] lg:h-full overflow-hidden">
+            <div className="lg:col-span-7 relative order-1 lg:order-2 flex-1 min-h-0 lg:h-full overflow-hidden">
               <div className="absolute inset-0 lg:py-24">
                 <ProcessGallery slides={STEPS} progressRef={progressRef} />
               </div>
@@ -248,7 +248,7 @@ export default function Process() {
             <div className="max-w-[1600px] mx-auto">
               <div className="flex items-center justify-between text-[10px] tracking-ultra uppercase text-sand-200/40 mb-2">
                 <span>Scroll · the sequence advances</span>
-                <span>Process · Aurelia Estates</span>
+                <span className="hidden sm:block">Process · Aurelia Estates</span>
               </div>
               <div className="relative h-px bg-sand-50/10 overflow-hidden">
                 <div
