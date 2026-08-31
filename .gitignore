@@ -22,3 +22,8 @@ logs/
 # Directorios de construcción
 dist/
 build/
+
+# Next.js
+.next/
+out/
+tsconfig.tsbuildinfo
