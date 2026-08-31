@@ -20,7 +20,7 @@ const STEPS: Step[] = [
     caption: 'Intention, calendar and constraints — mapped before a single search begins.',
     body: 'A private call to map intention, calendar and constraints. Nothing is searched until we know exactly what you are searching for.',
     image:
-      'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1600&q=80',
+      'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1600&q=80',
   },
   {
     title: 'The Shortlist',
@@ -28,7 +28,7 @@ const STEPS: Step[] = [
     caption: 'Three to five residences, half of them never listed on a public portal.',
     body: 'Within a week, we return with three to five residences — half of which are off-market and unseen on any public portal.',
     image:
-      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80',
+      'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=80',
   },
   {
     title: 'The Visit',
@@ -36,7 +36,7 @@ const STEPS: Step[] = [
     caption: 'Mornings for villas, late afternoons for terraces. No competing agents.',
     body: 'Discreet, accompanied viewings. Mornings for villas, late afternoons for terraces. No competing agents in the room.',
     image:
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=80',
+      'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1600&q=80',
   },
   {
     title: 'The Offer',
@@ -44,7 +44,7 @@ const STEPS: Step[] = [
     caption: 'Price, conditions and timing — two or three measured rounds.',
     body: 'We negotiate price, conditions and timing on your behalf — usually two to three measured rounds before agreement.',
     image:
-      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80',
+      'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1600&q=80',
   },
   {
     title: 'The Deed',
@@ -52,7 +52,7 @@ const STEPS: Step[] = [
     caption: 'Notary, bank, lawyers and architect coordinated into a single signature.',
     body: 'Aurelia coordinates notary, bank, lawyers and architect. You sign once, in one room. We attend everything else.',
     image:
-      'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?auto=format&fit=crop&w=1600&q=80',
+      'https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=1600&q=80',
   },
   {
     title: 'The Keys',
@@ -60,7 +60,7 @@ const STEPS: Step[] = [
     caption: 'Household setup, security, staffing — and the first dinner at the new table.',
     body: 'Handover, household setup, security, staffing — and the first dinner at the new table. The relationship continues from here.',
     image:
-      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1600&q=80',
+      'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=1600&q=80',
   },
 ];
 

@@ -37,6 +37,7 @@ const GHOST_SPEED = 0.3; // background numerals — slowest layer
 const FORE_SPEED = 1.2; // foreground hairlines — fastest layer
 const SKEW_MAX = 3.5;
 const SKEW_GAIN = 420;
+const SNAP_THRESHOLD = 0.25; // jump instead of sweeping when progress lands far from where we are
 const FOCUS_RANGE = 0.6; // distance from centre (in viewport widths) that still reads as "active"
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
@@ -129,7 +130,10 @@ export default function ProcessGallery({ slides, progressRef }: ProcessGalleryPr
     const tick = () => {
       const target = clamp(progressRef.current || 0, 0, 1);
       const previous = current;
-      current += (target - current) * (reduced ? 1 : LERP);
+      // Anchor jumps — and rAF being parked while the tab is hidden — can leave a
+      // large gap; snap rather than sweeping the whole strip to catch up.
+      const snap = reduced || Math.abs(target - current) > SNAP_THRESHOLD;
+      current += (target - current) * (snap ? 1 : LERP);
       const delta = current - previous;
       velocity += (delta - velocity) * VEL_LERP;
       draw();
@@ -187,7 +191,7 @@ export default function ProcessGallery({ slides, progressRef }: ProcessGalleryPr
                 transform: `translate3d(0, ${layout.y}%, 0)`,
               }}
             >
-              <div className="pg-media absolute -inset-x-[14%] inset-y-0 will-change-transform">
+              <div className="pg-media absolute -inset-x-[20%] inset-y-0 will-change-transform">
                 <Image
                   src={slide.image}
                   alt={`${slide.title} — ${slide.meta}`}
