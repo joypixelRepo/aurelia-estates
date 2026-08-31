@@ -36,43 +36,50 @@ export default function Hero() {
     const video = videoRef.current;
     if (!section || !pin || !video) return;
 
-    // Saltar fotograma a fotograma con currentTime va a tirones en táctiles, así
-    // que ahí dejamos el vídeo reproduciéndose en bucle. El pin se mantiene
-    // igual en ambos casos: es quien da su altura a la sección.
+    // En táctiles no fijamos nada: el hero mide una pantalla y el scroll pasa
+    // de largo al instante. Además saltar fotograma a fotograma con currentTime
+    // va a tirones en móvil, así que ahí el vídeo se reproduce en bucle.
+    //
+    // La misma condición está en el className de la sección como
+    // '[@media(pointer:fine)]:min-h-[600svh]'. Si cambias una, cambia la otra:
+    // reservar 600svh sin pin dejaría 500svh de hueco vacío.
     const wantsScrub =
       window.matchMedia('(pointer: fine)').matches &&
       !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (!wantsScrub) video.loop = true;
+    let ctx: gsap.Context | undefined;
 
-    // El pin se crea ya, sin esperar al vídeo: así la altura de la página es la
-    // misma desde el primer frame y las secciones de abajo miden bien.
-    const ctx = gsap.context(() => {
-      const scrubbed = { progress: 0 };
-      gsap.to(scrubbed, {
-        progress: 1,
-        ease: 'none',
-        onUpdate: () => {
-          if (!wantsScrub) return;
-          // El scrub del vídeo simplemente no hace nada hasta que hay metadata.
-          const duration = video.duration;
-          if (!isFinite(duration) || duration <= 0 || video.readyState < 2) return;
-          const t = Math.min(duration - 0.001, Math.max(0, scrubbed.progress * duration));
-          if (Math.abs(video.currentTime - t) > 0.016) {
-            video.currentTime = t;
-          }
-        },
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: PIN_END,
-          scrub: 0.6,
-          pin: pin,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
-    }, section);
+    if (wantsScrub) {
+      // El pin se crea ya, sin esperar al vídeo: así la altura de la página es
+      // la misma desde el primer frame y las secciones de abajo miden bien.
+      ctx = gsap.context(() => {
+        const scrubbed = { progress: 0 };
+        gsap.to(scrubbed, {
+          progress: 1,
+          ease: 'none',
+          onUpdate: () => {
+            // El scrub no hace nada hasta que hay metadata del vídeo.
+            const duration = video.duration;
+            if (!isFinite(duration) || duration <= 0 || video.readyState < 2) return;
+            const t = Math.min(duration - 0.001, Math.max(0, scrubbed.progress * duration));
+            if (Math.abs(video.currentTime - t) > 0.016) {
+              video.currentTime = t;
+            }
+          },
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: PIN_END,
+            scrub: 0.6,
+            pin: pin,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+      }, section);
+    } else {
+      video.loop = true;
+    }
 
     // Cebar el vídeo para que admita seek. No toca el layout.
     //
@@ -114,7 +121,7 @@ export default function Hero() {
       video.removeEventListener('loadeddata', warmUp);
       video.removeEventListener('canplay', warmUp);
       window.removeEventListener('touchstart', warmUp);
-      ctx.revert();
+      ctx?.revert();
     };
   }, []);
 
@@ -130,9 +137,9 @@ export default function Hero() {
     <section
       id="hero"
       ref={sectionRef}
-      className="relative w-full"
-      // Reserva la altura del pin para que la página no cambie de alto al hidratar
-      style={{ minHeight: '600svh' }}
+      // Reserva la altura del pin para que la página no cambie de alto al
+      // hidratar. Solo con puntero fino: en táctiles no hay pin (ver el efecto).
+      className="relative w-full [@media(pointer:fine)]:min-h-[600svh]"
     >
       <div
         ref={pinRef}

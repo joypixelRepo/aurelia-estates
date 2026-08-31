@@ -3,6 +3,7 @@ import Hero from './components/Hero';
 import Properties from './components/Properties';
 import Process from './components/Process';
 import About from './components/About';
+import Locations from './components/Locations';
 import Services from './components/Services';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
@@ -15,6 +16,7 @@ export default function HomePage() {
       <Properties />
       <Process />
       <About />
+      <Locations />
       <Services />
       <Contact />
       <Footer />
