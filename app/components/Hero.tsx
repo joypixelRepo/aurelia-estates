@@ -6,6 +6,16 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type Lenis from 'lenis';
 
+// Registrar el plugin de GSAP de forma segura en el cliente
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+// Longitud del pin. Fija a propósito: si dependiera de la duración del vídeo,
+// el pin no existiría hasta que el vídeo termina de descargarse y las secciones
+// de abajo medirían mal su posición durante ese rato.
+const PIN_END = '+=500%';
+
 export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
@@ -26,59 +36,47 @@ export default function Hero() {
     const video = videoRef.current;
     if (!section || !pin || !video) return;
 
-    let ctx: gsap.Context | undefined;
+    // El pin se crea ya, sin esperar al vídeo: así la altura de la página es la
+    // misma desde el primer frame y las secciones de abajo miden bien.
+    const ctx = gsap.context(() => {
+      const scrubbed = { progress: 0 };
+      gsap.to(scrubbed, {
+        progress: 1,
+        ease: 'none',
+        onUpdate: () => {
+          // El scrub del vídeo simplemente no hace nada hasta que hay metadata.
+          const duration = video.duration;
+          if (!isFinite(duration) || duration <= 0 || video.readyState < 2) return;
+          const t = Math.min(duration - 0.001, Math.max(0, scrubbed.progress * duration));
+          if (Math.abs(video.currentTime - t) > 0.016) {
+            video.currentTime = t;
+          }
+        },
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: PIN_END,
+          scrub: 0.6,
+          pin: pin,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+    }, section);
 
-    const init = () => {
-      const duration = video.duration;
-      if (!isFinite(duration) || duration <= 0) return;
-
+    // Cebar el vídeo para que admita seek. No toca el layout.
+    const warmUp = () => {
       const warm = video.play();
       if (warm && typeof warm.then === 'function') {
         warm.then(() => video.pause()).catch(() => {});
       }
-
-      ctx = gsap.context(() => {
-        const obj = { time: 0 };
-        gsap.to(obj, {
-          time: duration,
-          ease: 'none',
-          onUpdate: () => {
-            if (video.readyState >= 2) {
-              const t = Math.min(duration - 0.001, Math.max(0, obj.time));
-              if (Math.abs(video.currentTime - t) > 0.016) {
-                video.currentTime = t;
-              }
-            }
-          },
-          scrollTrigger: {
-            trigger: section,
-            start: 'top top',
-            end: () => `+=${Math.max(duration, 1) * 600}`,
-            scrub: 0.6,
-            pin: pin,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
-        });
-      }, section);
-
-      ScrollTrigger.refresh();
     };
-
-    if (video.readyState >= 1 && isFinite(video.duration) && video.duration > 0) {
-      init();
-    } else {
-      const onMeta = () => {
-        init();
-        video.removeEventListener('loadedmetadata', onMeta);
-        video.removeEventListener('canplay', onMeta);
-      };
-      video.addEventListener('loadedmetadata', onMeta);
-      video.addEventListener('canplay', onMeta);
-    }
+    if (video.readyState >= 2) warmUp();
+    else video.addEventListener('canplay', warmUp, { once: true });
 
     return () => {
-      ctx?.revert();
+      video.removeEventListener('canplay', warmUp);
+      ctx.revert();
     };
   }, []);
 
@@ -91,7 +89,13 @@ export default function Hero() {
   };
 
   return (
-    <section id="hero" ref={sectionRef} className="relative w-full">
+    <section
+      id="hero"
+      ref={sectionRef}
+      className="relative w-full"
+      // Reserva la altura del pin para que la página no cambie de alto al hidratar
+      style={{ minHeight: '600svh' }}
+    >
       <div
         ref={pinRef}
         className="h-[100svh] w-full relative overflow-hidden vignette grain"

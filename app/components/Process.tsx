@@ -88,7 +88,6 @@ export default function Process() {
 
     let ctx: gsap.Context | undefined;
     let cancelled = false;
-    const cleanups: Array<() => void> = [];
 
     const initScrollTrigger = () => {
       ctx = gsap.context(() => {
@@ -118,50 +117,24 @@ export default function Process() {
       }, sectionRef);
     };
 
-    // El pin mide alturas, así que no vale con un setTimeout: hasta que las
-    // imágenes no han cargado el layout sigue moviéndose y las distancias del
-    // pin salen mal (sobre todo en desktop).
-    const refreshWhenImagesSettle = () => {
-      const pending = Array.from(document.querySelectorAll('img')).filter((img) => !img.complete);
-
-      if (pending.length === 0) {
-        ScrollTrigger.refresh();
-        return;
-      }
-
-      let remaining = pending.length;
-      const onSettled = () => {
-        remaining -= 1;
-        if (remaining === 0 && !cancelled) ScrollTrigger.refresh();
-      };
-
-      pending.forEach((img) => {
-        img.addEventListener('load', onSettled, { once: true });
-        img.addEventListener('error', onSettled, { once: true });
-        cleanups.push(() => {
-          img.removeEventListener('load', onSettled);
-          img.removeEventListener('error', onSettled);
-        });
-      });
-    };
-
-    // Orquestación de carga: fuentes → inicializar → esperar imágenes
+    // Solo esperamos a las fuentes, que sí cambian la altura del texto de arriba.
+    // Las imágenes no: todas van en cajas de proporción fija, así que cargar no
+    // mueve el layout. (Esperarlas además nunca terminaba: las de abajo son
+    // lazy y no disparan 'load' hasta que entran en pantalla.)
     const start = () => {
       if (cancelled) return;
       initScrollTrigger();
-      refreshWhenImagesSettle();
+      ScrollTrigger.refresh();
     };
 
     if ('fonts' in document) {
       document.fonts.ready.then(() => requestAnimationFrame(start));
     } else {
-      window.addEventListener('load', start);
-      cleanups.push(() => window.removeEventListener('load', start));
+      start();
     }
 
     return () => {
       cancelled = true;
-      cleanups.forEach((fn) => fn());
       ctx?.revert();
     };
   }, []);
