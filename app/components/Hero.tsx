@@ -36,6 +36,15 @@ export default function Hero() {
     const video = videoRef.current;
     if (!section || !pin || !video) return;
 
+    // Saltar fotograma a fotograma con currentTime va a tirones en táctiles, así
+    // que ahí dejamos el vídeo reproduciéndose en bucle. El pin se mantiene
+    // igual en ambos casos: es quien da su altura a la sección.
+    const wantsScrub =
+      window.matchMedia('(pointer: fine)').matches &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!wantsScrub) video.loop = true;
+
     // El pin se crea ya, sin esperar al vídeo: así la altura de la página es la
     // misma desde el primer frame y las secciones de abajo miden bien.
     const ctx = gsap.context(() => {
@@ -44,6 +53,7 @@ export default function Hero() {
         progress: 1,
         ease: 'none',
         onUpdate: () => {
+          if (!wantsScrub) return;
           // El scrub del vídeo simplemente no hace nada hasta que hay metadata.
           const duration = video.duration;
           if (!isFinite(duration) || duration <= 0 || video.readyState < 2) return;
@@ -65,17 +75,45 @@ export default function Hero() {
     }, section);
 
     // Cebar el vídeo para que admita seek. No toca el layout.
+    //
+    // Ojo con iOS: ignora preload="auto" y no descarga nada hasta que se llama
+    // a play(). Si esperásemos a 'canplay' para llamarlo nos quedaríamos
+    // bloqueados — no hay datos porque no hemos pedido play, y no pedimos play
+    // porque no hay datos. Así que lo intentamos ya, y reintentamos en cada
+    // evento de carga por si el primer intento se rechazó.
+    let warmedUp = false;
     const warmUp = () => {
+      if (warmedUp) return;
       const warm = video.play();
       if (warm && typeof warm.then === 'function') {
-        warm.then(() => video.pause()).catch(() => {});
+        warm
+          .then(() => {
+            warmedUp = true;
+            // Si no hacemos scrub, lo dejamos reproduciéndose en bucle.
+            if (wantsScrub) video.pause();
+          })
+          .catch(() => {
+            /* Modo de bajo consumo o sin gesto previo: reintentamos al tocar. */
+          });
+      } else {
+        warmedUp = true;
+        if (wantsScrub) video.pause();
       }
     };
-    if (video.readyState >= 2) warmUp();
-    else video.addEventListener('canplay', warmUp, { once: true });
+
+    warmUp();
+    video.addEventListener('loadedmetadata', warmUp);
+    video.addEventListener('loadeddata', warmUp);
+    video.addEventListener('canplay', warmUp);
+    // Último recurso: en modo de bajo consumo iOS bloquea toda reproducción
+    // automática, y solo la desbloquea un gesto del usuario.
+    window.addEventListener('touchstart', warmUp, { once: true, passive: true });
 
     return () => {
+      video.removeEventListener('loadedmetadata', warmUp);
+      video.removeEventListener('loadeddata', warmUp);
       video.removeEventListener('canplay', warmUp);
+      window.removeEventListener('touchstart', warmUp);
       ctx.revert();
     };
   }, []);
@@ -112,15 +150,20 @@ export default function Hero() {
             willChange: 'transform, opacity',
           }}
         >
-          {/* Scroll-scrubbed background video */}
+          {/* Background video: scrub por scroll en escritorio, bucle en tactiles */}
           <video
             ref={videoRef}
-            src="/Drone_shot_villa_Mediterranean_Sea_202605282020.mp4"
+            src="/hero-video.mp4"
+            poster="/hero-poster.jpg"
+            // autoPlay es lo que hace que iOS se digne a descargar el vídeo:
+            // ignora preload="auto", pero sí respeta autoplay si va muted +
+            // playsInline. El scrub lo pausa en cuanto arranca.
+            autoPlay
             muted
             playsInline
             preload="auto"
             disablePictureInPicture
-            className="absolute inset-0 w-full h-full object-cover will-change-transform"
+            className="absolute inset-0 w-full h-full object-cover"
           />
 
           {/* Cinematic overlays */}
