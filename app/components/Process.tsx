@@ -1,62 +1,71 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import ProcessGallery, { GallerySlide } from './ProcessGallery';
 
 // Registrar ScrollTrigger de GSAP
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Import dinámico del componente 3D
-const ProcessScene3D = dynamic(
-  () => import('./ProcessScene3D'),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-full bg-gradient-to-br from-black to-gold-900/20 rounded-2xl animate-pulse" />
-    )
-  }
-);
+type Step = GallerySlide & { body: string };
 
-const STEPS = [
+const STEPS: Step[] = [
   {
-    icon: 'Compass',
     title: 'The Brief',
+    meta: 'Private call',
+    caption: 'Intention, calendar and constraints — mapped before a single search begins.',
     body: 'A private call to map intention, calendar and constraints. Nothing is searched until we know exactly what you are searching for.',
+    image:
+      'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1600&q=80',
   },
   {
-    icon: 'Folio',
     title: 'The Shortlist',
+    meta: 'Off-market',
+    caption: 'Three to five residences, half of them never listed on a public portal.',
     body: 'Within a week, we return with three to five residences — half of which are off-market and unseen on any public portal.',
+    image:
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80',
   },
   {
-    icon: 'Pin',
     title: 'The Visit',
+    meta: 'Accompanied',
+    caption: 'Mornings for villas, late afternoons for terraces. No competing agents.',
     body: 'Discreet, accompanied viewings. Mornings for villas, late afternoons for terraces. No competing agents in the room.',
+    image:
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=80',
   },
   {
-    icon: 'Pen',
     title: 'The Offer',
+    meta: 'Negotiation',
+    caption: 'Price, conditions and timing — two or three measured rounds.',
     body: 'We negotiate price, conditions and timing on your behalf — usually two to three measured rounds before agreement.',
+    image:
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80',
   },
   {
-    icon: 'Deed',
     title: 'The Deed',
+    meta: 'Notary',
+    caption: 'Notary, bank, lawyers and architect coordinated into a single signature.',
     body: 'Aurelia coordinates notary, bank, lawyers and architect. You sign once, in one room. We attend everything else.',
+    image:
+      'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?auto=format&fit=crop&w=1600&q=80',
   },
   {
-    icon: 'Key',
     title: 'The Keys',
+    meta: 'Handover',
+    caption: 'Household setup, security, staffing — and the first dinner at the new table.',
     body: 'Handover, household setup, security, staffing — and the first dinner at the new table. The relationship continues from here.',
+    image:
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1600&q=80',
   },
 ];
 
 const PIN_END = '+=500%';
-const WHEEL_COMPLETE_AT = 0.82;
+const GALLERY_COMPLETE_AT = 0.82;
 
 export default function Process() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -64,26 +73,20 @@ export default function Process() {
   const progressRef = useRef<number>(0);
   const [activeStep, setActiveStep] = useState(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const [isMounted, setIsMounted] = useState(false); // ← Cambiado de isClient a isMounted
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end start'],
   });
-  
+
   const foldRotateX = useTransform(scrollYProgress, [0.88, 1], [0, -30]);
   const foldScale = useTransform(scrollYProgress, [0.88, 1], [1, 0.78]);
   const foldOpacity = useTransform(scrollYProgress, [0.88, 1], [1, 0.08]);
 
-  // ✅ Marcar que el componente está montado en el cliente
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   // Configurar ScrollTrigger
   useEffect(() => {
     if (!sectionRef.current || !pinRef.current) return;
-    
+
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: sectionRef.current,
@@ -94,16 +97,16 @@ export default function Process() {
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
-          const wheelProgress = Math.min(1, self.progress / WHEEL_COMPLETE_AT);
-          progressRef.current = wheelProgress;
-          
+          const galleryProgress = Math.min(1, self.progress / GALLERY_COMPLETE_AT);
+          progressRef.current = galleryProgress;
+
           if (progressBarRef.current) {
-            progressBarRef.current.style.transform = `scaleX(${wheelProgress})`;
+            progressBarRef.current.style.transform = `scaleX(${galleryProgress})`;
           }
-          
+
           const idx = Math.max(
             0,
-            Math.min(STEPS.length - 1, Math.round(wheelProgress * (STEPS.length - 1)))
+            Math.min(STEPS.length - 1, Math.round(galleryProgress * (STEPS.length - 1)))
           );
           setActiveStep(idx);
         },
@@ -208,12 +211,12 @@ export default function Process() {
               </div>
             </div>
 
-            {/* ✅ 3D wheel panel - SOLO se renderiza en el cliente después del montaje */}
-            <div className="lg:col-span-7 relative order-1 lg:order-2 h-[55svh] lg:h-full bg-black rounded-2xl overflow-hidden">
-              <div className="absolute inset-0">
-                {isMounted && <ProcessScene3D progressRef={progressRef} />}
+            {/* Horizontal parallax gallery panel */}
+            <div className="lg:col-span-7 relative order-1 lg:order-2 h-[55svh] lg:h-full overflow-hidden">
+              <div className="absolute inset-0 lg:py-24">
+                <ProcessGallery slides={STEPS} progressRef={progressRef} />
               </div>
-              {/* Soft glow under wheel */}
+              {/* Soft glow under the strip */}
               <div className="absolute inset-x-12 bottom-12 h-32 bg-[radial-gradient(ellipse_at_center,rgba(201,163,104,0.18),transparent_70%)] pointer-events-none" />
             </div>
           </div>
@@ -222,7 +225,7 @@ export default function Process() {
           <div className="absolute bottom-0 inset-x-0 px-6 md:px-12 pb-6">
             <div className="max-w-[1600px] mx-auto">
               <div className="flex items-center justify-between text-[10px] tracking-ultra uppercase text-sand-200/40 mb-2">
-                <span>Scroll · the wheel turns</span>
+                <span>Scroll · the sequence advances</span>
                 <span>Process · Aurelia Estates</span>
               </div>
               <div className="relative h-px bg-sand-50/10 overflow-hidden">

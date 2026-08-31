@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{\"app/components/Process.tsx -> ./ProcessScene3D\":{\"id\":\"app/components/Process.tsx -> ./ProcessScene3D\",\"files\":[\"static/chunks/_app-pages-browser_app_components_ProcessScene3D_tsx.js\"]}}"
+self.__REACT_LOADABLE_MANIFEST="{}"

@@ -1,4 +1,4 @@
-// File: /Applications/XAMPP/xamppfiles/htdocs/joypixel/app/page.tsx
+// File: /Applications/XAMPP/xamppfiles/htdocs/aurelia-states/app/page.tsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
