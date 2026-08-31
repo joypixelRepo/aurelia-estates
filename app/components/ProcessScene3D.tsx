@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
-import { MutableRefObject, ReactNode, Suspense, useRef, useState, useEffect } from 'react';
+import { MutableRefObject, ReactNode, Suspense, useRef } from 'react';
 import * as THREE from 'three';
 
 interface ProcessScene3DProps {
@@ -435,19 +435,11 @@ function WheelItem({
 
 function Wheel({ progressRef }: { progressRef: MutableRefObject<number> }) {
   const rotationRef = useRef(0);
-  const [isReady, setIsReady] = useState(false);
-
-  // Pequeño retraso para asegurar que todo esté montado
-  useEffect(() => {
-    const timer = setTimeout(() => setIsReady(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+  const radius = 2.7;
 
   useFrame(() => {
-    if (!isReady) return;
-    // Animación más suave con easing
     const target = -progressRef.current * Math.PI * 2 * ((ITEMS.length - 1) / ITEMS.length);
-    rotationRef.current += (target - rotationRef.current) * 0.12;
+    rotationRef.current += (target - rotationRef.current) * 0.08;
   });
 
   return (
@@ -457,7 +449,7 @@ function Wheel({ progressRef }: { progressRef: MutableRefObject<number> }) {
           key={i}
           index={i}
           total={ITEMS.length}
-          radius={2.7}
+          radius={radius}
           rotationRef={rotationRef}
           Item={Item}
         />
@@ -485,16 +477,6 @@ function Lights() {
 }
 
 export default function ProcessScene3D({ progressRef }: ProcessScene3DProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className="w-full h-full bg-black" />;
-  }
-
   return (
     <Canvas
       dpr={[1, 1.8]}

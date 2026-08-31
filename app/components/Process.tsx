@@ -6,7 +6,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProcessGallery, { GallerySlide } from './ProcessGallery';
 
-// Registrar ScrollTrigger de GSAP
+// Registrar el plugin de GSAP de forma segura en el cliente
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -83,49 +83,98 @@ export default function Process() {
   const foldScale = useTransform(scrollYProgress, [0.88, 1], [1, 0.78]);
   const foldOpacity = useTransform(scrollYProgress, [0.88, 1], [1, 0.08]);
 
-  // Configurar ScrollTrigger
   useEffect(() => {
     if (!sectionRef.current || !pinRef.current) return;
 
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: PIN_END,
-        scrub: 0.5,
-        pin: pinRef.current,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          const galleryProgress = Math.min(1, self.progress / GALLERY_COMPLETE_AT);
-          progressRef.current = galleryProgress;
+    let ctx: gsap.Context | undefined;
+    let cancelled = false;
+    const cleanups: Array<() => void> = [];
 
-          if (progressBarRef.current) {
-            progressBarRef.current.style.transform = `scaleX(${galleryProgress})`;
-          }
+    const initScrollTrigger = () => {
+      ctx = gsap.context(() => {
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: PIN_END,
+          scrub: 0.5,
+          pin: pinRef.current,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            const galleryProgress = Math.min(1, self.progress / GALLERY_COMPLETE_AT);
+            progressRef.current = galleryProgress;
 
-          const idx = Math.max(
-            0,
-            Math.min(STEPS.length - 1, Math.round(galleryProgress * (STEPS.length - 1)))
-          );
-          setActiveStep(idx);
-        },
+            if (progressBarRef.current) {
+              progressBarRef.current.style.transform = `scaleX(${galleryProgress})`;
+            }
+
+            const idx = Math.max(
+              0,
+              Math.min(STEPS.length - 1, Math.round(galleryProgress * (STEPS.length - 1)))
+            );
+            setActiveStep((prev) => (prev === idx ? prev : idx));
+          },
+        });
+      }, sectionRef);
+    };
+
+    // El pin mide alturas, así que no vale con un setTimeout: hasta que las
+    // imágenes no han cargado el layout sigue moviéndose y las distancias del
+    // pin salen mal (sobre todo en desktop).
+    const refreshWhenImagesSettle = () => {
+      const pending = Array.from(document.querySelectorAll('img')).filter((img) => !img.complete);
+
+      if (pending.length === 0) {
+        ScrollTrigger.refresh();
+        return;
+      }
+
+      let remaining = pending.length;
+      const onSettled = () => {
+        remaining -= 1;
+        if (remaining === 0 && !cancelled) ScrollTrigger.refresh();
+      };
+
+      pending.forEach((img) => {
+        img.addEventListener('load', onSettled, { once: true });
+        img.addEventListener('error', onSettled, { once: true });
+        cleanups.push(() => {
+          img.removeEventListener('load', onSettled);
+          img.removeEventListener('error', onSettled);
+        });
       });
-    }, sectionRef);
+    };
 
-    // Forzar refresh después de que todo esté listo
-    const timeoutId = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 200);
+    // Orquestación de carga: fuentes → inicializar → esperar imágenes
+    const start = () => {
+      if (cancelled) return;
+      initScrollTrigger();
+      refreshWhenImagesSettle();
+    };
+
+    if ('fonts' in document) {
+      document.fonts.ready.then(() => requestAnimationFrame(start));
+    } else {
+      window.addEventListener('load', start);
+      cleanups.push(() => window.removeEventListener('load', start));
+    }
 
     return () => {
-      clearTimeout(timeoutId);
-      ctx.revert();
+      cancelled = true;
+      cleanups.forEach((fn) => fn());
+      ctx?.revert();
     };
   }, []);
 
   return (
-    <section id="process" ref={sectionRef} className="relative bg-black">
+    <section
+      id="process"
+      ref={sectionRef}
+      className="relative bg-black"
+      // Reserva la altura del pin antes de que GSAP arranque (la inicialización
+      // está diferida hasta document.fonts.ready), para que no dé un salto.
+      style={{ minHeight: '600svh' }}
+    >
       <div
         ref={pinRef}
         className="h-[100svh] w-full relative overflow-hidden"
