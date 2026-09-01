@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type Lenis from 'lenis';
@@ -33,14 +33,6 @@ export default function Hero() {
   const pinRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Fold transform driven by the section's scroll progress (engages near the end)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
-  const foldRotateX = useTransform(scrollYProgress, [0.86, 1], [0, -30]);
-  const foldScale = useTransform(scrollYProgress, [0.86, 1], [1, 0.78]);
-  const foldOpacity = useTransform(scrollYProgress, [0.86, 1], [1, 0.05]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -219,19 +211,8 @@ export default function Hero() {
       <div
         ref={pinRef}
         className="h-[100svh] w-full relative overflow-hidden vignette grain"
-        style={{ perspective: 1800 }}
       >
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            rotateX: foldRotateX,
-            scale: foldScale,
-            opacity: foldOpacity,
-            transformOrigin: '50% 0%',
-            transformPerspective: 1800,
-            willChange: 'transform, opacity',
-          }}
-        >
+        <div className="absolute inset-0">
           {/* Background video: scrub por scroll en escritorio, bucle en tactiles */}
           <video
             ref={videoRef}
@@ -347,7 +328,7 @@ export default function Hero() {
               </div>
             </motion.div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

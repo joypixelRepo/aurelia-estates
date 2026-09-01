@@ -53,9 +53,6 @@ export default function Services() {
     target: ref,
     offset: ['start start', 'end start'],
   });
-  const foldRotateX = useTransform(scrollYProgress, [0.82, 1], [0, -32]);
-  const foldScale = useTransform(scrollYProgress, [0.82, 1], [1, 0.78]);
-  const foldOpacity = useTransform(scrollYProgress, [0.82, 1], [1, 0.05]);
 
   // Parallax background — moves slower than the section itself
   const bgProgress = useScroll({
@@ -126,7 +123,6 @@ export default function Services() {
       id="services"
       ref={ref}
       className="relative bg-ink-900 overflow-hidden"
-      style={{ perspective: 1800 }}
     >
       {/* Parallax background image */}
       <motion.div
@@ -147,17 +143,7 @@ export default function Services() {
         <div className="absolute inset-0 bg-gradient-to-b from-ink-950 via-ink-950/70 to-ink-950" />
       </motion.div>
 
-      <motion.div
-        className="relative py-32 md:py-44"
-        style={{
-          rotateX: foldRotateX,
-          scale: foldScale,
-          opacity: foldOpacity,
-          transformOrigin: '50% 0%',
-          transformPerspective: 1800,
-          willChange: 'transform, opacity',
-        }}
-      >
+      <div className="relative py-32 md:py-44">
       <div className="max-w-[1600px] mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20 md:mb-28">
           <div className="lg:col-span-7">
@@ -203,7 +189,7 @@ export default function Services() {
           ))}
         </div>
       </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

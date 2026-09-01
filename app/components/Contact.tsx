@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -11,13 +11,6 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start start', 'end start'],
-  });
-  const foldRotateX = useTransform(scrollYProgress, [0.85, 1], [0, -28]);
-  const foldScale = useTransform(scrollYProgress, [0.85, 1], [1, 0.82]);
-  const foldOpacity = useTransform(scrollYProgress, [0.85, 1], [1, 0.1]);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -77,19 +70,8 @@ export default function Contact() {
       id="contact"
       ref={ref}
       className="relative bg-ink-950"
-      style={{ perspective: 1800 }}
     >
-      <motion.div
-        className="py-32 md:py-44"
-        style={{
-          rotateX: foldRotateX,
-          scale: foldScale,
-          opacity: foldOpacity,
-          transformOrigin: '50% 0%',
-          transformPerspective: 1800,
-          willChange: 'transform, opacity',
-        }}
-      >
+      <div className="py-32 md:py-44">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
           <div className="lg:col-span-5">
@@ -253,7 +235,7 @@ export default function Contact() {
           </div>
         </div>
       </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

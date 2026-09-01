@@ -25,14 +25,6 @@ export default function About() {
   const imgY = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
   const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.05, 1, 1.05]);
 
-  // Fold transform near end of section
-  const foldProgress = useScroll({
-    target: ref,
-    offset: ['start start', 'end start'],
-  }).scrollYProgress;
-  const foldRotateX = useTransform(foldProgress, [0.82, 1], [0, -32]);
-  const foldScale = useTransform(foldProgress, [0.82, 1], [1, 0.78]);
-  const foldOpacity = useTransform(foldProgress, [0.82, 1], [1, 0.05]);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -80,19 +72,8 @@ export default function About() {
       id="about"
       ref={ref}
       className="relative bg-ink-950 overflow-hidden"
-      style={{ perspective: 1800 }}
     >
-      <motion.div
-        className="py-32 md:py-44"
-        style={{
-          rotateX: foldRotateX,
-          scale: foldScale,
-          opacity: foldOpacity,
-          transformOrigin: '50% 0%',
-          transformPerspective: 1800,
-          willChange: 'transform, opacity',
-        }}
-      >
+      <div className="py-32 md:py-44">
       <div className="max-w-[1600px] mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
           <motion.div
@@ -162,7 +143,7 @@ export default function About() {
           </div>
         </div>
       </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

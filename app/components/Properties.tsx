@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { motion, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -54,13 +53,6 @@ export default function Properties() {
   const sectionRef = useRef<HTMLElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
-  const foldRotateX = useTransform(scrollYProgress, [0.82, 1], [0, -32]);
-  const foldScale = useTransform(scrollYProgress, [0.82, 1], [1, 0.78]);
-  const foldOpacity = useTransform(scrollYProgress, [0.82, 1], [1, 0.05]);
 
   useEffect(() => {
     if (!wrapRef.current) return;
@@ -137,20 +129,8 @@ export default function Properties() {
       id="properties"
       ref={sectionRef}
       className="relative bg-ink-950"
-      style={{ perspective: 1800 }}
     >
-      <motion.div
-        ref={wrapRef}
-        className="py-32 md:py-44"
-        style={{
-          rotateX: foldRotateX,
-          scale: foldScale,
-          opacity: foldOpacity,
-          transformOrigin: '50% 0%',
-          transformPerspective: 1800,
-          willChange: 'transform, opacity',
-        }}
-      >
+      <div ref={wrapRef} className="py-32 md:py-44">
       <div className="max-w-[1600px] mx-auto px-6 md:px-12">
         <div ref={headRef} className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20 md:mb-28">
           <div>
@@ -235,7 +215,7 @@ export default function Properties() {
           </a>
         </div>
       </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

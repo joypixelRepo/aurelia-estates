@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProcessGallery, { GallerySlide } from './ProcessGallery';
@@ -74,14 +73,7 @@ export default function Process() {
   const [activeStep, setActiveStep] = useState(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
 
-  const foldRotateX = useTransform(scrollYProgress, [0.88, 1], [0, -30]);
-  const foldScale = useTransform(scrollYProgress, [0.88, 1], [1, 0.78]);
-  const foldOpacity = useTransform(scrollYProgress, [0.88, 1], [1, 0.08]);
 
   useEffect(() => {
     if (!sectionRef.current || !pinRef.current) return;
@@ -151,19 +143,8 @@ export default function Process() {
       <div
         ref={pinRef}
         className="h-[100svh] w-full relative overflow-hidden"
-        style={{ perspective: 1800 }}
       >
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            rotateX: foldRotateX,
-            scale: foldScale,
-            opacity: foldOpacity,
-            transformOrigin: '50% 0%',
-            transformPerspective: 1800,
-            willChange: 'transform, opacity',
-          }}
-        >
+        <div className="absolute inset-0">
           {/* Ambient gradient backdrop */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(201,163,104,0.08),transparent_60%)] pointer-events-none" />
 
@@ -259,7 +240,7 @@ export default function Process() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
