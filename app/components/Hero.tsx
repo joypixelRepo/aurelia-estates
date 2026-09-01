@@ -16,6 +16,18 @@ if (typeof window !== 'undefined') {
 // de abajo medirían mal su posición durante ese rato.
 const PIN_END = '+=500%';
 
+// Fotogramas por segundo con los que está codificado /public/hero-video.mp4.
+// Si recodificas el vídeo con otro framerate, actualiza esto: se usa para pedir
+// un único salto por fotograma real en vez de tiempos intermedios inútiles.
+const VIDEO_FPS = 24;
+
+// Sonda de capacidad del dispositivo (ver el efecto).
+const SEEK_WARMUP = 3; // saltos iniciales que se descartan
+const SEEK_SAMPLES = 10; // muestras con las que se decide
+const SEEK_BUDGET_MS = 60; // por encima de esto el scrub ya se ve a saltos
+
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
 export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
@@ -49,22 +61,48 @@ export default function Hero() {
 
     let ctx: gsap.Context | undefined;
 
+    // Si el dispositivo no puede con los saltos, dejamos de hacer scrub y
+    // pasamos a reproducción en bucle. Más vale un vídeo corriendo que uno
+    // a tirones. Ver la sonda de más abajo.
+    let degraded = false;
+    let seekStart = 0;
+    let warmUpSeeks = 0;
+    const seekTimes: number[] = [];
+    let stopProbe: () => void = () => {};
+
+    const degradeToLoop = () => {
+      stopProbe();
+      if (degraded) return;
+      degraded = true;
+      video.loop = true;
+      video.play().catch(() => {});
+    };
+
     if (wantsScrub) {
       // El pin se crea ya, sin esperar al vídeo: así la altura de la página es
       // la misma desde el primer frame y las secciones de abajo miden bien.
       ctx = gsap.context(() => {
         const scrubbed = { progress: 0 };
+        // Un salto por fotograma real, ni uno más: pedir tiempos intermedios
+        // solo encarga trabajo al decodificador para pintar lo mismo.
+        let lastFrame = -1;
+
         gsap.to(scrubbed, {
           progress: 1,
           ease: 'none',
           onUpdate: () => {
+            if (degraded) return;
             // El scrub no hace nada hasta que hay metadata del vídeo.
             const duration = video.duration;
             if (!isFinite(duration) || duration <= 0 || video.readyState < 2) return;
-            const t = Math.min(duration - 0.001, Math.max(0, scrubbed.progress * duration));
-            if (Math.abs(video.currentTime - t) > 0.016) {
-              video.currentTime = t;
-            }
+
+            const frame = 1 / VIDEO_FPS;
+            const target = clamp(scrubbed.progress, 0, 1) * duration;
+            const frameIndex = Math.round(target / frame);
+            if (frameIndex === lastFrame) return;
+
+            lastFrame = frameIndex;
+            video.currentTime = Math.min(duration - 0.001, frameIndex * frame);
           },
           scrollTrigger: {
             trigger: section,
@@ -77,6 +115,42 @@ export default function Hero() {
           },
         });
       }, section);
+
+      // Sonda de capacidad: cronometramos lo que tarda el navegador en
+      // completar cada salto. Descartamos los primeros (el decodificador aún
+      // se está calentando), tomamos una muestra y decidimos una sola vez —
+      // así un tirón puntual no degrada la página para siempre.
+      const onSeeking = () => {
+        // Solo el primero de la ráfaga: si el navegador encadena varios saltos
+        // antes de completar uno, lo que se nota es el retraso acumulado.
+        if (!seekStart) seekStart = performance.now();
+      };
+      const onSeeked = () => {
+        if (!seekStart || degraded) return;
+        const elapsed = performance.now() - seekStart;
+        seekStart = 0;
+
+        if (warmUpSeeks < SEEK_WARMUP) {
+          warmUpSeeks += 1;
+          return;
+        }
+
+        seekTimes.push(elapsed);
+        if (seekTimes.length < SEEK_SAMPLES) return;
+
+        const median = [...seekTimes].sort((a, b) => a - b)[Math.floor(SEEK_SAMPLES / 2)];
+        stopProbe();
+        if (median > SEEK_BUDGET_MS) degradeToLoop();
+      };
+
+      stopProbe = () => {
+        video.removeEventListener('seeking', onSeeking);
+        video.removeEventListener('seeked', onSeeked);
+        stopProbe = () => {};
+      };
+
+      video.addEventListener('seeking', onSeeking);
+      video.addEventListener('seeked', onSeeked);
     } else {
       video.loop = true;
     }
@@ -121,6 +195,7 @@ export default function Hero() {
       video.removeEventListener('loadeddata', warmUp);
       video.removeEventListener('canplay', warmUp);
       window.removeEventListener('touchstart', warmUp);
+      stopProbe();
       ctx?.revert();
     };
   }, []);
