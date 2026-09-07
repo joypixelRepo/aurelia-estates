@@ -58,8 +58,8 @@ export const metadata: Metadata = {
     description: 'A curated portfolio of exceptional villas across the Costa del Sol.',
   },
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
   },
 };
 
